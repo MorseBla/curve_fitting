@@ -27,7 +27,7 @@ def model_mixed(f, a, b, c):
 
 #fit model 
 def fit_model(model_function, f, P):
-    popt, _ = curve_fit(model_function, f, P, maxfev=20000)
+    popt, _ = curve_fit(model_function, f, P) # maxfev=20000
     P_pred = model_function(f, *popt)
     r2 = calc_r2(P, P_pred)
     return popt, r2
