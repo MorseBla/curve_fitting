@@ -45,30 +45,59 @@ T = len(unique_benchmarks)
 def power_model(x, a, *b):
     #P(f) = a * (e_i[fmax]/fmax)(f_i) + b
     #for each task i 
-    f_i, e_norm_i, task_idx = x
+    f, e_norm_i, task_idx = x
     task_idx = task_idx.astype(int) 
     b = np.array(b)
+    f_i = f / fmax
     return a * e_norm_i * f_i + b[task_idx] 
 
 def power_model2(x, a, b, *c):
     #P(f) = a * (e_i[fmax]/fmax)(f_i) + b
     #for each task i 
-    f_i, e_norm_i, task_idx = x
+    f, e_norm_i, task_idx = x
     task_idx = task_idx.astype(int) 
     c = np.array(c)
+    f_i = f / fmax
     return (a * e_norm_i) * (f_i**2) + b * e_norm_i * f_i + c[task_idx] 
  
-#Perform curve fitting to find the best a and b values
+def power_model3(x, a, b, c, *d):
+    #for each task i 
+    f, e_norm_i, task_idx = x
+    task_idx = task_idx.astype(int) 
+    d = np.array(d)
+    f_i = f / fmax
+    return (a[task_idx] * e_norm_i) * (f_i**3) + b * e_norm_i * f_i**2 + c * e_norm_i * f_i + d[task_idx] 
+
+#TODO: make it so that a,b,c,d are unique for each task
+def power_model4(x, a, b, c, *d):
+    #for each task i 
+    f, e_norm_i, task_idx = x
+    task_idx = task_idx.astype(int) 
+    d = np.array(d)
+    f_i = f / fmax
+    return (a[task_idx] * e_norm_i) * (f_i**3) + b * e_norm_i * f_i**2 + c * e_norm_i * f_i + d[task_idx] 
+
+
+#Perform curve fitting to find the best a and b values 
+
 #p0 = [1.0] + [np.mean(P)] * T
-p0 = [1.0] + [1.0] + [np.mean(P)] * T
+#p0 = [1.0] + [1.0] + [np.mean(P)] * T
+#p0 = [1.0] + [1.0] + [1.0] + [np.mean(P)] * T
+p0 = [np.mean(P)] * T * 4
+
 #popt, _ = curve_fit(power_model, (f, e_norm, task_idx), P, p0=p0)
-popt, _ = curve_fit(power_model2, (f, e_norm, task_idx), P, p0=p0)
+#popt, _ = curve_fit(power_model2, (f, e_norm, task_idx), P, p0=p0)
+#popt, _ = curve_fit(power_model3, (f, e_norm, task_idx), P, p0=p0)
+popt, _ = curve_fit(power_model4, (f, e_norm, task_idx), P, p0=p0)
+
 #a_hat, b_hat = popt[0], popt[1:]
-a_hat, b_hat, c_hat = popt[0], popt[1], popt[2:]
+#a_hat, b_hat, c_hat = popt[0], popt[1], popt[2:]
+a_hat, b_hat, c_hat, d_hat = popt[0], popt[1], popt[2], popt[3:]
     
 print(f"Optimal a: {a_hat}")
 print(f"Optimal b: {b_hat}")
 print(f"Optimal c: {c_hat}")
+print(f"Optimal d: {d_hat}")
  
 # Step 6: Visualize the fit using bars
 #bar_width = 0.35
@@ -77,7 +106,10 @@ print(f"Optimal c: {c_hat}")
  
 # Calculate predicted times using the fitted model
 #predicted_P = power_model((f, e_norm, task_idx), a_hat, *b_hat)
-predicted_P = power_model2((f, e_norm, task_idx), a_hat, b_hat, *c_hat)
+#predicted_P = power_model2((f, e_norm, task_idx), a_hat, b_hat, *c_hat)
+predicted_P = power_model25((f, e_norm, task_idx), a_hat, b_hat, c_hat, *d_hat)
+
+
 # Filter out any invalid values (inf, NaN) from actual and predicted times
 #valid_indices = [
 #    i for i in range(len(times_parallel)) 
